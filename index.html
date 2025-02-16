@@ -26,8 +26,6 @@
     </div>
 
     <script>
-        const STATIC_QRIS = "00020101021226670016COM.NOBUBANK.WWW01189360050300000879140214442319967625120303UMI5204541153033605802ID5923KHOERINSTORE OK20100676011PURBALINGGA6304";
-
         function computeCRC16(qrData) {
             let crc = 0xFFFF;
             for (let i = 0; i < qrData.length; i++) {
@@ -45,7 +43,7 @@
 
         function generateQRIS() {
             let nominal = document.getElementById("nominalInput").value.trim();
-            
+
             if (!nominal || isNaN(nominal) || parseInt(nominal) < 1) {
                 Swal.fire({
                     icon: 'error',
@@ -56,10 +54,23 @@
                 return;
             }
 
-            let nominalTag = "54" + nominal.length.toString().padStart(2, '0') + nominal;
-            let fullQR = STATIC_QRIS + nominalTag;
-            let crc = computeCRC16(fullQR);
-            let finalQRIS = fullQR + crc;
+            // **Format QRIS yang lebih universal**
+            let qrisTemplate = [
+                "000201", 
+                "010212", 
+                "26670016COM.NOBUBANK.WWW", 
+                "01189360050300000879", 
+                "52040000", 
+                "5303360", 
+                "5802ID", 
+                "5907Donatur", 
+                "6003IDN", 
+                `54${nominal.length.toString().padStart(2, '0')}${nominal}`, 
+                "6304" // CRC16 akan dihitung di sini
+            ].join('');
+
+            let crc = computeCRC16(qrisTemplate);
+            let finalQRIS = qrisTemplate + crc;
 
             const qr = qrcode(0, 'M');
             qr.addData(finalQRIS);
