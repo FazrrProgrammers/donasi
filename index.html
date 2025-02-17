@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fazrr - Pembayaran/Donasi</title>
+    <title>Pembayaran QRIS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
+        body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(160deg, #0F172A, #1E293B, #0F172A);
             min-height: 100vh;
@@ -20,85 +20,65 @@
 <body class="flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-indigo-800">
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-white">FazrrEdan Donasi</h1>
-            <p class="text-gray-300 text-sm">Terus support kami dengan donasi ❤️</p>
+            <h1 class="text-white text-2xl font-bold">Donasi QRIS</h1>
+            <p class="text-gray-300 text-sm">Scan untuk melakukan pembayaran</p>
         </div>
         
-        <div class="bg-slate-800/60 rounded-2xl p-6 mb-6 text-center border border-indigo-800/50">
-            <p class="text-gray-200 italic text-lg font-['Orbitron']">
-                "Terima kasih atas donasi Anda!"
-            </p>
+        <div class="text-center mb-4">
+            <div id="qrcode" class="inline-block bg-white p-2 rounded-lg"></div>
         </div>
 
         <div class="space-y-6">
-            <label class="block text-sm font-medium text-gray-400">Nominal Donasi</label>
+            <label class="block text-sm font-medium text-gray-400">Nominal Donasi (Rp)</label>
             <input type="number" id="nominalInput" class="w-full px-4 py-3 bg-slate-800/70 text-gray-100 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 text-lg" placeholder="Masukkan Nominal donasi">
             
-            <button id="convertBtn" class="w-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white py-3 rounded-xl hover:opacity-90 transition duration-300 text-lg font-semibold shadow-xl transform active:scale-95">
-                Gaskan Bayar
+            <button id="updateQR" class="w-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white py-3 rounded-xl hover:opacity-90 transition duration-300 text-lg font-semibold shadow-xl transform active:scale-95">
+                Perbarui QRIS
             </button>
         </div>
 
-        <div id="qrcode-container" class="mt-6 text-center hidden">
-            <p class="text-gray-300 text-sm mb-2">Scan QRIS untuk membayar:</p>
-            <div id="qrcode" class="inline-block"></div>
-        </div>
-
         <div class="mt-6 text-center text-gray-400 text-sm">
-            <p>Terima kasih <span class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">yang</span> sudah <span class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">berdonasi</span></p>
+            <p>Terima kasih telah mendukung dengan donasi!</p>
         </div>
     </div>
 
     <script>
-        const STATIC_QRIS = "00020101021126670016COM.NOBUBANK.WWW01189360050300000879140214442319967625120303UMI51440014ID.CO.QRIS.WWW0215ID20243440233930303UMI5204541153033605802ID5923KHOERINSTORE OK20100676011PURBALINGGA61055331862070703A016";
+        const STATIC_QRIS = "00020101021126670016COM.NOBUBANK.WWW01189360050300000879140214442319967625120303UMI51440014ID.CO.QRIS.WWW0215ID20243440233930303UMI5204541153033605802ID5923KHOERINSTORE OK20100676011PURBALINGGA61055331862070703A01630487BE";
 
-        function calculateCRC16(qrData) {
-            let crc = 0xFFFF;
-            for (let i = 0; i < qrData.length; i++) {
-                crc ^= qrData.charCodeAt(i) << 8;
-                for (let j = 0; j < 8; j++) {
-                    crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
-                }
-            }
-            return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+        function updateQRIS(nominal) {
+            let newQRIS = STATIC_QRIS.slice(0, -4); // Buang CRC16 lama
+            newQRIS = newQRIS.replace("010211", "010212"); // Tipe QRIS Fixed
+            let nominalStr = "54" + nominal.length.toString().padStart(2, '0') + nominal + "5802ID"; // Format nominal
+            newQRIS = newQRIS.split("5802ID")[0] + nominalStr + "5802ID" + STATIC_QRIS.split("5802ID")[1];
+
+            // Generate QR baru
+            document.getElementById("qrcode").innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: newQRIS,
+                width: 256,
+                height: 256
+            });
+
+            return newQRIS;
         }
 
-        function generateQRCode(text) {
-            document.getElementById('qrcode-container').classList.remove('hidden');
-            document.getElementById('qrcode').innerHTML = "";
-            
-            const qr = qrcode(0, 'M');
-            qr.addData(text);
-            qr.make();
-            document.getElementById('qrcode').innerHTML = qr.createImgTag(6);
-        }
-
-        function convertQRIS() {
-            const qty = document.getElementById('nominalInput').value.trim();
-
-            if (!qty || isNaN(qty) || parseInt(qty) < 1) {
+        document.getElementById("updateQR").addEventListener("click", function () {
+            let nominal = document.getElementById("nominalInput").value.trim();
+            if (!nominal || isNaN(nominal) || parseInt(nominal) < 1000) {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Nominal Tidak Valid',
-                    text: 'Masukkan nominal dalam angka!',
-                    confirmButtonColor: '#3B82F6'
+                    icon: "error",
+                    title: "Nominal Tidak Valid",
+                    text: "Minimal nominal adalah Rp 1.000!",
+                    confirmButtonColor: "#3B82F6"
                 });
                 return;
             }
 
-            let qris = STATIC_QRIS.slice(0, -4); // Hapus CRC lama
-            let step1 = qris.replace("010211", "010212"); // Ubah 010211 ke 010212
-            let step2 = step1.split("5802ID");
-            let uang = "54" + qty.length.toString().padStart(2, '0') + qty;
-            uang += "5802ID";
-            let finalQR = step2[0].trim() + uang + step2[1].trim();
-            let newCRC16 = calculateCRC16(finalQR);
-            finalQR += newCRC16; // Tambahkan CRC baru
+            updateQRIS(nominal);
+        });
 
-            generateQRCode(finalQR);
-        }
-
-        document.getElementById('convertBtn').addEventListener('click', convertQRIS);
+        // Generate QR awal
+        updateQRIS("10000"); // Default Rp 10.000
     </script>
 </body>
 </html>
