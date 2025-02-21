@@ -64,6 +64,7 @@
             })
             .catch(err => {
                 document.getElementById('status').innerText = 'Error connecting to API!';
+                console.error('Fetch error:', err);
             });
     }
 </script>
